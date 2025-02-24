@@ -1,4 +1,4 @@
-# Proxer
+# Proxer Releases
 
 > [!IMPORTANT]
 > Please note that the open-source version of the proxy client has been moved to [`proxer-cli`](https://github.com/doroved/proxer-cli).
