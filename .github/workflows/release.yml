@@ -28,10 +28,10 @@ jobs:
 
       - name: Create temporary certificate files
         run: |
-          mkdir -p ./assets/certs
-          echo "${{ secrets.ROOT_CA_PEM }}" > ./assets/certs/rootCA.pem
-          echo "${{ secrets.CLIENT_CERT_PEM }}" > ./assets/certs/client.pem
-          echo "${{ secrets.CLIENT_KEY_PEM }}" > ./assets/certs/client-key.pem
+          mkdir -p ./src-tauri/assets/certs
+          echo "${{ secrets.ROOT_CA_PEM }}" > ./src-tauri/assets/certs/rootCA.pem
+          echo "${{ secrets.CLIENT_CERT_PEM }}" > ./src-tauri/assets/certs/client.pem
+          echo "${{ secrets.CLIENT_KEY_PEM }}" > ./src-tauri/assets/certs/client-key.pem
 
       - name: setup bun
         uses: oven-sh/setup-bun@v2.0.1
@@ -79,4 +79,4 @@ jobs:
 
       - name: Remove temporary certificate files
         if: always()
-        run: rm -rf ./assets/certs
+        run: rm -rf ./src-tauri/assets/certs
