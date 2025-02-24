@@ -1,0 +1,68 @@
+name: "release"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish-tauri:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            args: "--target aarch64-apple-darwin"
+            name: macOS Apple
+          - platform: macos-latest
+            args: "--target x86_64-apple-darwin"
+            name: macOS Intel
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4.2.2
+        with:
+          repository: doroved/proxer
+          token: ${{ secrets.GH_TOKEN_FOR_CHECKOUT }}
+
+      - name: setup bun
+        uses: oven-sh/setup-bun@v2.0.1
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
+          targets: ${{ contains(matrix.platform, 'macos') && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2.7.7
+        with:
+          workspaces: ". -> target"
+
+      - name: install frontend dependencies
+        # If you don't have `beforeBuildCommand` configured you may want to build your frontend here too.
+        run: bun i
+
+      - uses: tauri-apps/tauri-action@v0.5.19
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_CERTIFICATE: ${{secrets.APPLE_CERTIFICATE}}
+          APPLE_CERTIFICATE_PASSWORD: ${{secrets.APPLE_CERTIFICATE_PASSWORD}}
+          APPLE_ID: ${{secrets.APPLE_ID}}
+          APPLE_PASSWORD: ${{secrets.APPLE_PASSWORD}}
+          APPLE_TEAM_ID: ${{secrets.APPLE_TEAM_ID}}
+          TAURI_SIGNING_PRIVATE_KEY: ${{secrets.TAURI_SIGNING_PRIVATE_KEY}}
+          # TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD}}
+          CI: true
+        with:
+          tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
+          releaseName: "v__VERSION__"
+          releaseBody: "See the assets to download this version and install, or go to https://proxer.app to download."
+          releaseDraft: true
+          prerelease: false
+          tauriScript: bun tauri
+          args: ${{ matrix.args }}
+          repo: proxer-releases
+          owner: doroved
+          releaseCommitish: main
