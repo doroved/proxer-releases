@@ -26,6 +26,13 @@ jobs:
           repository: doroved/proxer
           token: ${{ secrets.GH_TOKEN_FOR_CHECKOUT }}
 
+      - name: Create temporary certificate files
+        run: |
+          mkdir -p ./assets/certs
+          echo "${{ secrets.ROOT_CA_PEM }}" > ./assets/certs/rootCA.pem
+          echo "${{ secrets.CLIENT_CERT_PEM }}" > ./assets/certs/client.pem
+          echo "${{ secrets.CLIENT_KEY_PEM }}" > ./assets/certs/client-key.pem
+
       - name: setup bun
         uses: oven-sh/setup-bun@v2.0.1
 
@@ -54,6 +61,9 @@ jobs:
           APPLE_TEAM_ID: ${{secrets.APPLE_TEAM_ID}}
           TAURI_SIGNING_PRIVATE_KEY: ${{secrets.TAURI_SIGNING_PRIVATE_KEY}}
           # TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD}}
+          # ROOT_CA_PEM: ${{ secrets.ROOT_CA_PEM }}
+          # CLIENT_CERT_PEM: ${{ secrets.CLIENT_CERT_PEM }}
+          # CLIENT_KEY_PEM: ${{ secrets.CLIENT_KEY_PEM }}
           CI: true
         with:
           tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
@@ -66,3 +76,7 @@ jobs:
           repo: proxer-releases
           owner: doroved
           releaseCommitish: main
+
+      - name: Remove temporary certificate files
+        if: always()
+        run: rm -rf ./assets/certs
