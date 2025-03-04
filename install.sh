@@ -15,13 +15,13 @@ else
 fi
 
 # Get version from API
-version=$(curl -s "https://api.github.com/repos/doroved/proxer/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//')
+version=$(curl -s "https://api.github.com/repos/doroved/proxer-releases/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//')
 
 # Name of the downloaded file
 downloaded_file="proxer_${version}_${short_arch}.dmg"
 
 # Download the file
-curl -OL "https://github.com/doroved/proxer/releases/download/v${version}/$downloaded_file"
+curl -OL "https://github.com/doroved/proxer-releases/releases/download/v${version}/$downloaded_file"
 
 # Check if the file exists in ~/Downloads, if not - move it
 if [ ! -f "$HOME/Downloads/$downloaded_file" ]; then
