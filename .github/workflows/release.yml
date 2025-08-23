@@ -34,7 +34,7 @@ jobs:
           echo "${{ secrets.CLIENT_KEY_PEM }}" > ./src-tauri/assets/certs/client-key.pem
 
       - name: setup bun
-        uses: oven-sh/setup-bun@v2.0.1
+        uses: oven-sh/setup-bun@v2.0.2
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -49,7 +49,7 @@ jobs:
       - name: install frontend dependencies
         run: bun i
 
-      - uses: tauri-apps/tauri-action@v0.5.19
+      - uses: tauri-apps/tauri-action@v0.5.22
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APPLE_CERTIFICATE: ${{secrets.APPLE_CERTIFICATE}}
