@@ -2,7 +2,6 @@ name: "release"
 
 on:
   workflow_dispatch:
-
 jobs:
   publish-tauri:
     permissions:
@@ -13,17 +12,17 @@ jobs:
         include:
           # - platform: macos-latest
           - platform: macos-14
-            args: "--target aarch64-apple-darwin"
+            args: "--target aarch64-apple-darwin --verbose"
             name: macOS Apple
           # - platform: macos-latest
           - platform: macos-14
-            args: "--target x86_64-apple-darwin"
+            args: "--target x86_64-apple-darwin --verbose"
             name: macOS Intel
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Check out project
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v5.0.0
         with:
           repository: doroved/proxer
           token: ${{ secrets.GH_TOKEN_FOR_CHECKOUT }}
@@ -44,7 +43,7 @@ jobs:
           targets: ${{ contains(matrix.platform, 'macos') && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: Rust cache
-        uses: swatinem/rust-cache@v2.7.7
+        uses: swatinem/rust-cache@v2.8.0
         with:
           workspaces: "./src-tauri -> target"
 
