@@ -10,8 +10,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: macos-latest
-            # - platform: macos-14
+          # - platform: macos-latest
+          - platform: macos-14
             args: "--target aarch64-apple-darwin"
             name: macOS Apple
           # - platform: macos-latest
