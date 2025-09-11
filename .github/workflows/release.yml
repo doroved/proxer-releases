@@ -30,7 +30,6 @@ jobs:
       - name: Create temporary certificate files
         run: |
           mkdir -p ./src-tauri/assets/certs
-          echo "${{ secrets.ROOT_CA_PEM }}" > ./src-tauri/assets/certs/rootCA.pem
           echo "${{ secrets.CLIENT_CERT_PEM }}" > ./src-tauri/assets/certs/client.pem
           echo "${{ secrets.CLIENT_KEY_PEM }}" > ./src-tauri/assets/certs/client-key.pem
 
