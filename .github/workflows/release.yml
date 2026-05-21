@@ -22,7 +22,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Check out project
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v5
         with:
           repository: doroved/proxer
           token: ${{ secrets.GH_TOKEN_FOR_CHECKOUT }}
@@ -34,7 +34,7 @@ jobs:
           echo "${{ secrets.CLIENT_KEY_PEM }}" > ./src-tauri/assets/certs/client-key.pem
 
       - name: setup bun
-        uses: oven-sh/setup-bun@v2.0.2
+        uses: oven-sh/setup-bun@v2
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -42,14 +42,15 @@ jobs:
           targets: ${{ contains(matrix.platform, 'macos') && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: Rust cache
-        uses: swatinem/rust-cache@v2.8.0
+        uses: swatinem/rust-cache@v2
         with:
           workspaces: "./src-tauri -> target"
+          shared-key: ${{ matrix.args }}
 
       - name: install frontend dependencies
         run: bun i
 
-      - uses: tauri-apps/tauri-action@v0.5.22
+      - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APPLE_CERTIFICATE: ${{secrets.APPLE_CERTIFICATE}}
