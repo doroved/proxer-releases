@@ -1,0 +1,38 @@
+name: Update Installer
+
+on:
+  repository_dispatch:
+    types: [update-installer]
+
+jobs:
+  update-installer:
+    name: Update Installer DMG
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download installer DMG from proxer-installer
+        run: |
+          gh release download --repo doroved/proxer-installer \
+            --pattern "Proxer.dmg" \
+            --dir .
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN_FOR_CHECKOUT }}
+
+      - name: Create or update fixed installer release
+        run: |
+          # Create the release if it doesn't exist yet
+          gh release view installer --repo doroved/proxer-releases > /dev/null 2>&1 || \
+            gh release create installer \
+              --repo doroved/proxer-releases \
+              --title "Installer" \
+              --notes "Proxer installer for macOS. This release is updated automatically." \
+              --latest=false
+
+          # Upload DMG (overwrite if exists)
+          gh release upload installer ./Proxer.dmg \
+            --repo doroved/proxer-releases \
+            --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
