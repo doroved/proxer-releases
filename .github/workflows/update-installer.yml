@@ -3,6 +3,7 @@ name: Update Installer
 on:
   repository_dispatch:
     types: [update-installer]
+  workflow_dispatch:
 
 jobs:
   update-installer:
@@ -20,9 +21,23 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN_FOR_CHECKOUT }}
 
-      - name: Create or update fixed installer release
+      - name: Get installer version
+        id: version
         run: |
           VERSION="${{ github.event.client_payload.version }}"
+
+          # Fallback: get version from latest proxer-installer release
+          if [ -z "$VERSION" ]; then
+            VERSION=$(gh release view --repo doroved/proxer-installer --json tagName -q '.tagName')
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN_FOR_CHECKOUT }}
+
+      - name: Create or update fixed installer release
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
 
           # Create the release if it doesn't exist yet
           gh release view installer --repo doroved/proxer-releases > /dev/null 2>&1 || \
