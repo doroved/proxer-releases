@@ -2,8 +2,69 @@ name: "release"
 
 on:
   workflow_dispatch:
+
 jobs:
+  create-release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.create-release.outputs.release_id }}
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v5
+        with:
+          repository: doroved/proxer
+          token: ${{ secrets.GH_TOKEN_FOR_CHECKOUT }}
+
+      - name: Get version
+        id: get-version
+        run: |
+          VERSION=$(grep -m 1 '^version = ' src-tauri/Cargo.toml | cut -d '"' -f 2)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create or get draft release
+        id: create-release
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const tag = `v${{ steps.get-version.outputs.version }}`;
+            const owner = 'doroved';
+            const repo = 'proxer-releases';
+
+            // Check if draft release with this tag already exists
+            const releases = await github.paginate(github.rest.repos.listReleases, {
+              owner,
+              repo,
+              per_page: 100
+            });
+
+            const existingDraft = releases.find(r => r.tag_name === tag && r.draft);
+            if (existingDraft) {
+              console.log(`Found existing draft release: ${existingDraft.id}`);
+              core.setOutput('release_id', existingDraft.id);
+              return;
+            }
+
+            const body = '[Download Proxer](https://github.com/doroved/proxer-releases/releases/download/installer/Proxer.dmg)\n\nSee the assets to download this version and install, or go to https://proxer.app to download.';
+
+            const release = await github.rest.repos.createRelease({
+              owner,
+              repo,
+              tag_name: tag,
+              name: tag,
+              body: body,
+              draft: true,
+              prerelease: false,
+              target_commitish: 'main'
+            });
+
+            console.log(`Created new draft release: ${release.data.id}`);
+            core.setOutput('release_id', release.data.id);
+
   publish-tauri:
+    needs: create-release
     permissions:
       contents: write
     strategy:
@@ -61,15 +122,11 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD}}
           CI: false
         with:
-          tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          releaseName: "v__VERSION__"
+          releaseId: ${{ needs.create-release.outputs.release_id }}
           releaseBody: "[Download Proxer](https://github.com/doroved/proxer-releases/releases/download/installer/Proxer.dmg)\n\nSee the assets to download this version and install, or go to https://proxer.app to download."
-          releaseDraft: true
-          prerelease: false
           args: ${{ matrix.args }}
           repo: proxer-releases
           owner: doroved
-          releaseCommitish: main
 
       - name: Remove temporary certificate files
         if: always()
